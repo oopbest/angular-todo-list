@@ -13,10 +13,11 @@
     </div>
 
     <ul class="todo-items">
-        <li class="todo-item" ng-repeat="item in $ctrl.todos track by $index">
+        <li class="todo-item" ng-repeat="item in $ctrl.todos track by item.id">
             <input class="todo-checkbox"
                    type="checkbox"
-                   ng-model="item.done">
+                   ng-checked="item.done"
+                   ng-click="$ctrl.toggle(item)">
             <span class="todo-text"
                   ng-class="{'done': item.done}">{{item.text}}</span>
             <button class="btn-delete"

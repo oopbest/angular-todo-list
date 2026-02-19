@@ -1,51 +1,77 @@
-import angular from 'angular';
+import { TODO_EVENTS } from './todo-states.constant';
 
+/**
+ * TodoController — Thin Controller
+ *
+ * Dispatches user actions via lpCoreBus and reads state from TodoStore.
+ * Listens for STATE_CHANGED to keep the view in sync.
+ */
 export default class TodoController {
-    constructor() {
-        this.todos = [
-            {text:'learn angular', done:true},
-            {text:'build an angular app', done:false}
-        ];
+    /* @ngInject */
+    constructor(lpCoreBus, TodoStore, $scope) {
+        this._bus = lpCoreBus;
+        this._store = TodoStore;
         this.todoText = '';
-        this.errorMessage = '';
+
+        // Sync view with store
+        this._syncFromStore();
+
+        // Listen for state changes
+        this._unsub = this._bus.on(TODO_EVENTS.STATE_CHANGED, () => {
+            this._syncFromStore();
+        });
+
+        // Cleanup on scope destroy
+        $scope.$on('$destroy', () => {
+            if (this._unsub) this._unsub();
+        });
     }
 
+    // ── View Data Sync ──
+
+    _syncFromStore() {
+        this.todos = this._store.getTodos();
+        this.errorMessage = this._store.getErrorMessage();
+        this.machineState = this._store.getState();
+    }
+
+    // ── User Actions ──
+
     addTodo() {
-        if (!this.todoText || !this.todoText.trim()) {
-            this.errorMessage = 'Please enter a todo item.';
-            return;
+        this._bus.emit(TODO_EVENTS.TODO_ADD, { text: this.todoText });
+        if (!this._store.getErrorMessage()) {
+            this.todoText = '';
         }
-        this.errorMessage = '';
-        this.todos.push({text: this.todoText.trim(), done: false});
-        this.todoText = '';
+    }
+
+    remove(item) {
+        this._bus.emit(TODO_EVENTS.TODO_REMOVE, { id: item.id });
+    }
+
+    toggle(item) {
+        this._bus.emit(TODO_EVENTS.TODO_TOGGLE, { id: item.id });
+    }
+
+    archive() {
+        this._bus.emit(TODO_EVENTS.TODO_ARCHIVE);
+    }
+
+    remaining() {
+        return this._store.remaining();
     }
 
     clearError() {
         if (this.errorMessage) {
+            this._bus.emit(TODO_EVENTS.RESET);
             this.errorMessage = '';
         }
     }
 
-    remaining() {
-        var count = 0;
-        angular.forEach(this.todos, (todo) => {
-            count += todo.done ? 0 : 1;
-        });
-        return count;
-    }
+    // ── Debug ──
 
-    archive() {
-        var oldTodos = this.todos;
-        this.todos = [];
-        angular.forEach(oldTodos, (todo) => {
-            if (!todo.done) this.todos.push(todo);
-        });
-    }
-
-    remove(item) {
-        var index = this.todos.indexOf(item);
-        if (index > -1) {
-            this.todos.splice(index, 1);
-        }
+    debugHistory() {
+        console.log('[TodoController] History:', this._store.getHistory());
     }
 }
+
+TodoController.$inject = ['lpCoreBus', 'TodoStore', '$scope'];
