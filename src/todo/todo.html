@@ -1,17 +1,31 @@
 <div class="todo-list">
-    <form ng-submit="$ctrl.addTodo()">
-        <input type="text" ng-model="$ctrl.todoText" placeholder="add new todo here" size="30">
-        <input class="btn-primary" type="submit" value="add">
+    <form class="todo-form" ng-submit="$ctrl.addTodo()">
+        <input type="text"
+               ng-model="$ctrl.todoText"
+               placeholder="✍️ What needs to be done?"
+               autofocus>
+        <button class="btn-add" type="submit">+ Add</button>
     </form>
-    <ul>
-        <li ng-repeat="item in $ctrl.todos">
-            <input type="checkbox" ng-model="item.done">
-            <span class="done-{{item.done}}">{{item.text}}</span>
-            <button ng-click="$ctrl.remove(item)">delete</button>
+
+    <ul class="todo-items">
+        <li class="todo-item" ng-repeat="item in $ctrl.todos track by $index">
+            <input class="todo-checkbox"
+                   type="checkbox"
+                   ng-model="item.done">
+            <span class="todo-text"
+                  ng-class="{'done': item.done}">{{item.text}}</span>
+            <button class="btn-delete"
+                    ng-click="$ctrl.remove(item)">✕ Delete</button>
         </li>
     </ul>
-     <div>
-         {{$ctrl.remaining()}} of {{$ctrl.todos.length}} remaining
-         [ <a href="" ng-click="$ctrl.archive()">archive</a> ]
+
+    <div class="empty-state" ng-if="$ctrl.todos.length === 0">
+        <span class="emoji">🎉</span>
+        <p>All done! Nothing to do.</p>
+    </div>
+
+    <div class="status-bar" ng-if="$ctrl.todos.length > 0">
+        <span>{{$ctrl.remaining()}} of {{$ctrl.todos.length}} remaining</span>
+        <a href="" ng-click="$ctrl.archive()" ng-if="$ctrl.remaining() < $ctrl.todos.length">Archive done</a>
     </div>
 </div>
