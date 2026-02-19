@@ -1,15 +1,36 @@
 <div class="todo-list">
-    <form class="todo-form" ng-submit="$ctrl.addTodo()">
-        <input type="text"
-               ng-model="$ctrl.todoText"
-               ng-change="$ctrl.clearError()"
-               placeholder="✍️ What needs to be done?"
-               ng-class="{'input-error': $ctrl.errorMessage}"
-               autofocus>
-        <button class="btn-add" type="submit">+ Add</button>
+    <form ng-submit="$ctrl.addTodo()">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control"
+                   ng-model="$ctrl.todoText"
+                   ng-change="$ctrl.clearError()"
+                   placeholder="✍️ What needs to be done?"
+                   ng-class="{'input-error': $ctrl.errorMessage}"
+                   autofocus>
+            <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit"
+                        uib-tooltip="Add a new todo"
+                        tooltip-placement="top"
+                        tooltip-append-to-body="true">+ Add</button>
+            </span>
+        </div>
     </form>
     <div class="error-message" ng-if="$ctrl.errorMessage">
         ⚠️ {{$ctrl.errorMessage}}
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section" ng-if="$ctrl.todos.length > 0">
+        <div class="progress-label">
+            <span>Progress</span>
+            <span>{{$ctrl.completionPercent}}%</span>
+        </div>
+        <uib-progressbar value="$ctrl.completionPercent"
+                         max="100"
+                         type="{{$ctrl.completionPercent === 100 ? 'success' : 'info'}}"
+                         animate="true">
+        </uib-progressbar>
     </div>
 
     <ul class="todo-items">
@@ -17,11 +38,17 @@
             <input class="todo-checkbox"
                    type="checkbox"
                    ng-checked="item.done"
-                   ng-click="$ctrl.toggle(item)">
+                   ng-click="$ctrl.toggle(item)"
+                   uib-tooltip="{{item.done ? 'Mark as active' : 'Mark as done'}}"
+                   tooltip-placement="left"
+                   tooltip-append-to-body="true">
             <span class="todo-text"
                   ng-class="{'done': item.done}">{{item.text}}</span>
             <button class="btn-delete"
-                    ng-click="$ctrl.remove(item)">✕ Delete</button>
+                    ng-click="$ctrl.confirmRemove(item)"
+                    uib-tooltip="Delete this todo"
+                    tooltip-placement="left"
+                    tooltip-append-to-body="true">✕ Delete</button>
         </li>
     </ul>
 
@@ -32,6 +59,10 @@
 
     <div class="status-bar" ng-if="$ctrl.todos.length > 0">
         <span>{{$ctrl.remaining()}} of {{$ctrl.todos.length}} remaining</span>
-        <a href="" ng-click="$ctrl.archive()" ng-if="$ctrl.remaining() < $ctrl.todos.length">Archive done</a>
+        <a href="" ng-click="$ctrl.archive()"
+           ng-if="$ctrl.remaining() < $ctrl.todos.length"
+           uib-tooltip="Remove all completed todos"
+           tooltip-placement="top"
+           tooltip-append-to-body="true">Archive done</a>
     </div>
 </div>

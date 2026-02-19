@@ -4,13 +4,14 @@ import { TODO_EVENTS } from './todo-states.constant';
  * TodoController — Thin Controller
  *
  * Dispatches user actions via lpCoreBus and reads state from TodoStore.
- * Listens for STATE_CHANGED to keep the view in sync.
+ * Uses $uibModal for confirm delete dialog.
  */
 export default class TodoController {
     /* @ngInject */
-    constructor(lpCoreBus, TodoStore, $scope) {
+    constructor(lpCoreBus, TodoStore, $scope, $uibModal) {
         this._bus = lpCoreBus;
         this._store = TodoStore;
+        this._$uibModal = $uibModal;
         this.todoText = '';
 
         // Sync view with store
@@ -33,6 +34,9 @@ export default class TodoController {
         this.todos = this._store.getTodos();
         this.errorMessage = this._store.getErrorMessage();
         this.machineState = this._store.getState();
+        this.completionPercent = this.todos.length > 0
+            ? Math.round(((this.todos.length - this._store.remaining()) / this.todos.length) * 100)
+            : 0;
     }
 
     // ── User Actions ──
@@ -44,8 +48,38 @@ export default class TodoController {
         }
     }
 
-    remove(item) {
-        this._bus.emit(TODO_EVENTS.TODO_REMOVE, { id: item.id });
+    confirmRemove(item) {
+        var modalInstance = this._$uibModal.open({
+            animation: true,
+            template: `
+                <div class="confirm-modal">
+                    <div class="modal-header">
+                        <h4 class="modal-title">🗑️ Confirm Delete</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete "<strong>{{$ctrl.item.text}}</strong>"?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-modal btn-modal-cancel"
+                                ng-click="$ctrl.cancel()">Cancel</button>
+                        <button class="btn-modal btn-modal-delete"
+                                ng-click="$ctrl.confirm()">Delete</button>
+                    </div>
+                </div>
+            `,
+            controllerAs: '$ctrl',
+            controller: ['$uibModalInstance', function($uibModalInstance) {
+                this.item = item;
+                this.confirm = function() { $uibModalInstance.close('confirm'); };
+                this.cancel = function() { $uibModalInstance.dismiss('cancel'); };
+            }],
+            size: 'sm',
+            windowClass: 'dark-modal'
+        });
+
+        modalInstance.result.then(() => {
+            this._bus.emit(TODO_EVENTS.TODO_REMOVE, { id: item.id });
+        });
     }
 
     toggle(item) {
@@ -74,4 +108,4 @@ export default class TodoController {
     }
 }
 
-TodoController.$inject = ['lpCoreBus', 'TodoStore', '$scope'];
+TodoController.$inject = ['lpCoreBus', 'TodoStore', '$scope', '$uibModal'];
