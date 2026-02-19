@@ -7,11 +7,23 @@ export default class TodoController {
             {text:'build an angular app', done:false}
         ];
         this.todoText = '';
+        this.errorMessage = '';
     }
 
     addTodo() {
-        this.todos.push({text:this.todoText, done:false});
+        if (!this.todoText || !this.todoText.trim()) {
+            this.errorMessage = 'Please enter a todo item.';
+            return;
+        }
+        this.errorMessage = '';
+        this.todos.push({text: this.todoText.trim(), done: false});
         this.todoText = '';
+    }
+
+    clearError() {
+        if (this.errorMessage) {
+            this.errorMessage = '';
+        }
     }
 
     remaining() {

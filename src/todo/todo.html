@@ -2,10 +2,15 @@
     <form class="todo-form" ng-submit="$ctrl.addTodo()">
         <input type="text"
                ng-model="$ctrl.todoText"
+               ng-change="$ctrl.clearError()"
                placeholder="✍️ What needs to be done?"
+               ng-class="{'input-error': $ctrl.errorMessage}"
                autofocus>
         <button class="btn-add" type="submit">+ Add</button>
     </form>
+    <div class="error-message" ng-if="$ctrl.errorMessage">
+        ⚠️ {{$ctrl.errorMessage}}
+    </div>
 
     <ul class="todo-items">
         <li class="todo-item" ng-repeat="item in $ctrl.todos track by $index">
